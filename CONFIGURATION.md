@@ -53,7 +53,7 @@ The project-scoped file is the cleanest pattern for **per-client setups**: drop 
 | Reddit (public) | none | always on | yes |
 | Hacker News | none | always on | yes |
 | Polymarket | none | always on | yes |
-| GitHub | `gh` CLI installed (uses your GitHub auth) | always on if `gh` present | yes |
+| GitHub | `GITHUB_TOKEN` or `gh` CLI installed (uses your GitHub auth) | always on if either is present | yes |
 | YouTube | `yt-dlp` CLI installed | always on if `yt-dlp` present | yes |
 | X / Twitter | one of: `AUTH_TOKEN` + `CT0` (browser cookies, Bird CLI), `XAI_API_KEY`, `SCRAPECREATORS_API_KEY`, or `FROM_BROWSER` (cookie-jar auth) | X items in results | cookie-jar / Bird = free; xAI / ScrapeCreators = paid |
 | TikTok | `SCRAPECREATORS_API_KEY` + `INCLUDE_SOURCES` contains `tiktok` | TikTok items | 10K free calls |
@@ -74,6 +74,9 @@ GOOGLE_API_KEY=<your-gemini-key>
 
 # Web search backend (one is enough; Brave is the cheapest)
 BRAVE_API_KEY=<your-brave-key>
+
+# Optional GitHub search/enrichment auth
+GITHUB_TOKEN=<your-github-token>
 
 # Optional sources
 SCRAPECREATORS_API_KEY=<your-scrapecreators-key>

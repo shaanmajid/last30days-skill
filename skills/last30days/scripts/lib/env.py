@@ -308,6 +308,7 @@ def get_config() -> dict[str, Any]:
         ('GOOGLE_API_KEY', None),
         ('GEMINI_API_KEY', None),
         ('GOOGLE_GENAI_API_KEY', None),
+        ('GITHUB_TOKEN', None),
         ('XIAOHONGSHU_API_BASE', None),
         ('LAST30DAYS_REASONING_PROVIDER', 'auto'),
         ('LAST30DAYS_PLANNER_MODEL', None),
