@@ -30,12 +30,21 @@ uv run pytest                              # full suite
 uv run pytest tests/test_dedupe_v3.py      # single file
 uv run pytest tests/test_dedupe_v3.py -k some_case   # single case
 uv run pytest --cov                        # with coverage (skips lib/vendor/)
+
+# Static analysis
+find . -type f -name '*.sh' -print0 | xargs -0 shellcheck
+actionlint
+uv run ruff check .                        # blocking safety lint baseline
+uv run ruff format --check .               # advisory until the tree is formatted
+uv run ty check --extra-search-path skills/last30days/scripts --force-exclude
 ```
 
 Python 3.12+ required. Use `uv` for the env; the venv lives at `.venv/`.
 
 ## Rules
 - `lib/__init__.py` must be bare package marker (comment only, NO eager imports)
+- Ruff's initial blocking baseline is intentionally narrow (`E9`, `F63`, `F7`, `F82`). Expand it only with the cleanup PR that fixes the newly enabled rule family.
+- `ty` is advisory during the package migration because the engine still uses legacy top-level `lib` imports and dynamic provider payloads.
 - One-time setup: `npx skills add . -g -y` copies the skill into `~/.agents/skills/<name>/` (real directory) and, for harnesses that support symlinked skill dirs, drops a per-host symlink pointing at that copy. **Working-tree edits do NOT propagate automatically** — the `~/.agents/skills/<name>/` copy is frozen at install time. To sync after edits, re-run `npx skills add . -g -y`. For live-edit on a dev machine, replace the install copy with a symlink to the working tree: `ln -sfn "$PWD/skills/last30days" ~/.agents/skills/last30days` (run from the repo root).
 - Git remote: origin = public (`mvanhorn/last30days-skill`)
 
