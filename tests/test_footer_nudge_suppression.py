@@ -88,5 +88,11 @@ class FooterNudgeSuppressionTests(unittest.TestCase):
             msg="web promo should be suppressed when --plan is passed",
         )
 
+    def test_invalid_plan_fails_closed(self):
+        result = self._run("--plan", "{bad json", topic="OpenAI")
+        combined = result.stdout + result.stderr
+        self.assertEqual(2, result.returncode)
+        self.assertIn("Invalid --plan JSON", combined)
+
 if __name__ == "__main__":
     unittest.main()

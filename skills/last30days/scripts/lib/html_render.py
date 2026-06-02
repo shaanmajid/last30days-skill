@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 import re
 from datetime import date
+from urllib.parse import urlsplit
 
 from . import render, schema
 
@@ -607,11 +608,15 @@ def _inline_markdown(text: str) -> str:
 
     escaped = re.sub(r"`([^`]+)`", code_replace, escaped)
     escaped = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", escaped)
-    escaped = re.sub(
-        r"\[([^\]]+)\]\(([^)\s]+)\)",
-        r'<a href="\2">\1</a>',
-        escaped,
-    )
+    def link_replace(match: re.Match[str]) -> str:
+        label = match.group(1)
+        href = match.group(2)
+        scheme = urlsplit(html.unescape(href)).scheme.lower()
+        if scheme not in {"http", "https"}:
+            return label
+        return f'<a href="{href}">{label}</a>'
+
+    escaped = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", link_replace, escaped)
     for token, value in code_tokens.items():
         escaped = escaped.replace(token, value)
     return escaped

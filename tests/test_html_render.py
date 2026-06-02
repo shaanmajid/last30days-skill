@@ -192,6 +192,12 @@ class HtmlRenderBehaviorTests(unittest.TestCase):
         rendered = html_render._markdown_to_html("[name](https://example.test/path)")
         self.assertIn('<a href="https://example.test/path">name</a>', rendered)
 
+    def test_markdown_links_reject_unsafe_schemes(self):
+        rendered = html_render._markdown_to_html("[name](javascript:alert) and [file](data:text/html,pwn)")
+        self.assertNotIn("javascript:", rendered)
+        self.assertNotIn("data:", rendered)
+        self.assertIn("<p>name and file</p>", rendered)
+
     def test_no_file_header_h1(self):
         rendered = html_render.render_html(_report("AI agent frameworks", ["One"]))
         self.assertNotIn("<h1>last30days v", rendered)

@@ -364,6 +364,28 @@ def parse_competitors_plan(raw: str | None) -> dict[str, dict]:
     return normalized
 
 
+def parse_query_plan(raw: str | None) -> dict | None:
+    """Parse a --plan argument and fail closed on malformed caller intent."""
+    if not raw:
+        return None
+    plan_str = raw
+    if os.path.isfile(plan_str):
+        try:
+            plan_str = open(plan_str).read()
+        except OSError as exc:
+            sys.stderr.write(f"[Planner] Cannot read --plan file: {exc}\n")
+            raise SystemExit(2)
+    try:
+        parsed = json.loads(plan_str)
+    except json.JSONDecodeError as exc:
+        sys.stderr.write(f"[Planner] Invalid --plan JSON: {exc}\n")
+        raise SystemExit(2)
+    if not isinstance(parsed, dict):
+        sys.stderr.write(f"[Planner] --plan top-level must be a JSON object, got {type(parsed).__name__}\n")
+        raise SystemExit(2)
+    return parsed
+
+
 def subrun_kwargs_for(
     entity: str,
     plan_entry: dict,
@@ -632,17 +654,7 @@ def main() -> int:
         tiktok_hashtags = [h.strip().lstrip("#") for h in args.tiktok_hashtags.split(",") if h.strip()] if args.tiktok_hashtags else None
         tiktok_creators = [c.strip().lstrip("@") for c in args.tiktok_creators.split(",") if c.strip()] if args.tiktok_creators else None
         ig_creators = [c.strip().lstrip("@") for c in args.ig_creators.split(",") if c.strip()] if args.ig_creators else None
-        # Parse external plan if provided via --plan flag
-        external_plan = None
-        if args.plan:
-            import json as _json
-            plan_str = args.plan
-            if os.path.isfile(plan_str):
-                plan_str = open(plan_str).read()
-            try:
-                external_plan = _json.loads(plan_str)
-            except _json.JSONDecodeError as exc:
-                sys.stderr.write(f"[Planner] Invalid --plan JSON: {exc}\n")
+        external_plan = parse_query_plan(args.plan)
 
         # Auto-resolve: use web search to discover subreddits/handles before planning.
         # This is the engine-side equivalent of SKILL.md Steps 0.55/0.75 for platforms
