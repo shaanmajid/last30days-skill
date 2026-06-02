@@ -3,9 +3,11 @@
 Agent Skills package for researching any topic across Reddit, X, YouTube, and web. Installable across Claude Code (most common host), Codex, Cursor, GitHub Copilot, Gemini CLI, and 50+ other [Agent Skills](https://agentskills.io) hosts. Python scripts with multi-source search aggregation.
 
 ## Structure
+- `last30days/` — importable Python package facade (`python -m last30days` and package entry point)
 - `skills/last30days/SKILL.md` — canonical skill definition / runtime spec the model reads when the slash command fires
-- `skills/last30days/scripts/last30days.py` — main research engine
-- `skills/last30days/scripts/lib/` — search, enrichment, rendering modules
+- `skills/last30days/scripts/last30days.py` — compatibility executable used by skill installs and existing scripts
+- `skills/last30days/scripts/lib/` — legacy search, enrichment, rendering modules retained during package migration
+- `docs/package-architecture.md` — current package-vs-skill split and migration notes
 - `skills/last30days/scripts/lib/vendor/bird-search/` — vendored X search client
 - `docs/solutions/` — documented solutions to past problems (bugs, best practices, workflow patterns), organized by category with YAML frontmatter (`module`, `tags`, `problem_type`)
 - `CONCEPTS.md` — shared domain vocabulary (Skill, Engine, Harness, Beta channel) — relevant when orienting to the codebase or discussing project terminology
@@ -14,7 +16,8 @@ Agent Skills package for researching any topic across Reddit, X, YouTube, and we
 - `HERMES_SETUP.md` — install instructions for the Hermes harness specifically
 
 ## Orientation
-- This is an Agent Skills package, not a CLI tool. The product is the slash-command-invoked skill (`/last30days <topic>` in most harnesses); `scripts/last30days.py` is implementation. Claude Code is the most common host but not the only one — features must work across every harness the skill installs into.
+- This is becoming a Python package with an associated Agent Skill wrapper. The product is still the slash-command-invoked skill (`/last30days <topic>` in most harnesses), but reusable Python entry points now live under `last30days/`.
+- `scripts/last30days.py` remains a compatibility executable. During the migration, package code may delegate to the legacy engine instead of moving every module at once.
 - Feature design starts from the slash-command UX. A new engine flag with no SKILL.md integration is incomplete — the model invoking the skill won't know the flag exists.
 - README and PR examples show `/last30days <topic>` first. Direct CLI invocation (`python3 scripts/last30days.py ...`) is a fallback for scripting, cron, and dev-time engine testing; label it as such, never as the primary path.
 - Slash commands don't pass shell mechanics through. `/last30days OpenClaw --emit=html | pbcopy` is invalid in any harness — either use the slash form (no flags or pipes; let the model translate user intent into engine flags) or use the direct CLI form (full `python3 ...` with explicit flags and a real shell).
@@ -23,6 +26,7 @@ Agent Skills package for researching any topic across Reddit, X, YouTube, and we
 ```bash
 # Dev/fallback: direct engine invocation (scripting, cron, or engine testing only)
 python3 skills/last30days/scripts/last30days.py "test query" --emit=compact
+python3 -m last30days "test query" --emit=compact
 npx skills add . -g -y   # copies skill into ~/.agents/skills/<name>/ (frozen at install time); re-run to sync working-tree edits — see Rules below
 
 # Tests (pytest, ~89 files under tests/, configured in pyproject.toml)

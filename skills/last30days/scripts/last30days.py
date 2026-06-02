@@ -41,6 +41,8 @@ if os.name == "nt":
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
 sys.path.insert(0, str(SCRIPT_DIR))
+if __name__ == "__main__":
+    sys.modules.setdefault("last30days", sys.modules[__name__])
 
 from lib import env, html_render, pipeline, render, schema, ui
 

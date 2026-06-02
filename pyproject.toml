@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "last30days-skill"
 version = "3.3.1"
@@ -5,6 +9,29 @@ description = "Multi-source last-30-days research skill"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
+
+[project.scripts]
+last30days = "last30days:main"
+
+[tool.setuptools]
+packages = ["last30days", "last30days.engine", "lib"]
+
+[tool.setuptools.package-dir]
+"last30days.engine" = "skills/last30days/scripts"
+lib = "skills/last30days/scripts/lib"
+
+[tool.setuptools.package-data]
+"last30days.engine" = [
+  "*.sh",
+]
+lib = [
+  "vendor/bird-search/LICENSE",
+  "vendor/bird-search/*.json",
+  "vendor/bird-search/*.mjs",
+  "vendor/bird-search/*.js",
+  "vendor/bird-search/lib/*.js",
+  "vendor/bird-search/lib/*.json",
+]
 
 [dependency-groups]
 dev = [
@@ -22,7 +49,7 @@ addopts = [
 
 [tool.coverage.run]
 branch = true
-source = ["skills/last30days/scripts", "tests"]
+source = ["last30days", "skills/last30days/scripts", "tests"]
 omit = [
   "skills/last30days/scripts/lib/vendor/*",
   "dist/*",
