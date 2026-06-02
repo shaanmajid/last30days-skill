@@ -6,6 +6,7 @@ from lib.skill_meta import read_skill_version
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = ROOT / "skills" / "last30days"
+TOOLS_DEV = ROOT / "tools" / "dev"
 
 
 def _skill_version() -> str:
@@ -36,7 +37,7 @@ class TestVersionConsistency(unittest.TestCase):
 
     def test_memory_save_dir_uses_single_env_variable(self) -> None:
         skill_text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
-        compare_text = (SKILL_ROOT / "scripts" / "compare.sh").read_text(encoding="utf-8")
+        compare_text = (TOOLS_DEV / "compare.sh").read_text(encoding="utf-8")
         default_assignment = 'LAST30DAYS_MEMORY_DIR="${LAST30DAYS_MEMORY_DIR:-$HOME/Documents/Last30Days}"'
 
         self.assertIn(default_assignment, skill_text)

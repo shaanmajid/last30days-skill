@@ -10,6 +10,8 @@ variants/open/references/research.md
 
 # OS / tool files
 .DS_Store
+*.log
+logs/
 .claude/
 .entire/
 __pycache__/
@@ -23,12 +25,13 @@ htmlcov/
 # Root vendor/ is accidental - real vendored client lives at scripts/lib/vendor/bird-search/
 /vendor/
 
-# build artifact from scripts/build-skill.sh
+# build artifact from tools/release/build-skill.sh
 /dist/
 
-# Internal planning docs (ce:plan output) — keep local, don't publish
-docs/plans/
+# Generated comparison output - keep local, don't publish
+docs/test-results/
 .context/
 
 /work
 /print
+/tmp/

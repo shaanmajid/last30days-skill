@@ -131,7 +131,7 @@ A week-long shipping cycle: ~75 PRs merged plus 7 community fixes salvaged throu
 - OpenClaw poll-timing initialized once ([#358](https://github.com/mvanhorn/last30days-skill/pull/358)).
 - Prefer sandboxed Safari cookie path ([#343](https://github.com/mvanhorn/last30days-skill/pull/343)).
 - Preserve clean mode for last-run state ([#334](https://github.com/mvanhorn/last30days-skill/pull/334)).
-- Replaced hardcoded `/Users/mvanhorn/...` paths in `test-v1-vs-v2.sh` with portable env-var overrides (Dave Morin, salvaged from #297).
+- Replaced hardcoded `/Users/mvanhorn/...` paths in the V1-vs-V2 comparison harness with portable env-var overrides (Dave Morin, salvaged from #297).
 
 **Hooks**
 
@@ -350,8 +350,8 @@ Users on v3.0.1 or v3.0.2: run `/plugin update last30days` then `/reload-plugins
 
 ### Notes
 
-- The claude.ai `.skill` bundle built by `scripts/build-skill.sh` still works — the archive grew from 89 to 97 files, well under the 200-file cap.
-- claude.ai-specific exclusions (avoiding duplicate `SKILL.md` files in the bundle) should move into `scripts/build-skill.sh` rather than `.gitattributes` in a future release, since `.gitattributes` cannot distinguish between the two distribution channels.
+- The claude.ai `.skill` bundle built by the release packaging script still works — the archive grew from 89 to 97 files, well under the 200-file cap.
+- claude.ai-specific exclusions (avoiding duplicate `SKILL.md` files in the bundle) should live in the release packaging script rather than `.gitattributes`, since `.gitattributes` cannot distinguish between the two distribution channels.
 
 ## [3.0.2] - 2026-04-15
 
@@ -368,18 +368,18 @@ If `/last30days` stopped working for you, run `/plugin update last30days` then `
 
 ### Fixed
 
-- **Skill upload packaging** - `scripts/build-skill.sh` produces a claude.ai-upload-ready `.skill` file that fits under the 200-file cap. Previously, zipping the repo hit 406 files and the "Upload skill" UI rejected it outright.
+- **Skill upload packaging** - the release packaging script produces a claude.ai-upload-ready `.skill` file that fits under the 200-file cap. Previously, zipping the repo hit 406 files and the "Upload skill" UI rejected it outright.
 - **SKILL.md description length** - trimmed from 228 to 167 chars (Anthropic caps descriptions at 200).
 
 ### Removed
 
 - Unused root `vendor/` directory (215 files from an accidental commit in PR #48 - the real vendored X client lives at `scripts/lib/vendor/bird-search/`).
-- Legacy top-level `plans/` directory (superseded by `docs/plans/`; both plans described work that was already shipped in v3).
+- Legacy top-level planning artifacts for work that was already shipped in v3.
 
 ### Added
 
 - `.gitattributes` with `export-ignore` entries so `git archive` drops tests, docs, fixtures, assets, historical manifests, and internal skill subdirs. Mirrors Anthropic's canonical `package_skill.py` exclusions.
-- `scripts/build-skill.sh` - one-command path to produce `dist/last30days.skill` with a single top-level `last30days/` folder, defensive `=200` file check, and dirty-tree refusal.
+- Release packaging script - one-command path to produce `dist/last30days.skill` with a single top-level `last30days/` folder, defensive `=200` file check, and dirty-tree refusal.
 - `README.md` section documenting the claude.ai skill upload workflow.
 
 ## [3.0.0] - 2026-04-11

@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 # build-skill.sh - package this repo as a claude.ai-upload-ready .skill file
-# Usage: bash skills/last30days/scripts/build-skill.sh  (run from repo root)
+# Usage: bash tools/release/build-skill.sh  (run from repo root)
 #
 # Produces dist/last30days.skill, a zip with a single top-level `last30days/`
 # directory containing SKILL.md and the scripts/ runtime from skills/last30days.
-# See
-# docs/plans/2026-04-14-001-fix-skill-upload-200-file-limit-plan.md.
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 if ! git diff --quiet || ! git diff --cached --quiet; then

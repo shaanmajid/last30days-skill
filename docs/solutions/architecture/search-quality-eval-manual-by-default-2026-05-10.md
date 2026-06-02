@@ -2,7 +2,7 @@
 title: Search-quality eval is manual by default, not a CI gate on every PR
 date: 2026-05-10
 category: docs/solutions/architecture
-module: skills/last30days/scripts/evaluate_search_quality.py
+module: tools/dev/evaluate_search_quality.py
 problem_type: design_decision
 component: ci_policy
 severity: low
@@ -27,7 +27,7 @@ tags:
 
 ## Context
 
-`skills/last30days/scripts/evaluate_search_quality.py` compares a baseline revision against a candidate revision across a fixed pool of reviewer topics. It produces two flavors of metrics: deterministic overlap (Jaccard, retention) and LLM-judged quality scores. The natural impulse on seeing an evaluator script is to wire it into CI on every PR — "regression catcher, run it automatically." We deliberately don't.
+`tools/dev/evaluate_search_quality.py` compares a baseline revision against a candidate revision across a fixed pool of reviewer topics. It produces two flavors of metrics: deterministic overlap (Jaccard, retention) and LLM-judged quality scores. The natural impulse on seeing an evaluator script is to wire it into CI on every PR — "regression catcher, run it automatically." We deliberately don't.
 
 Three properties of this particular evaluator make CI-on-every-PR the wrong default:
 
@@ -47,7 +47,7 @@ The script stays runnable by maintainers and contributors. The pattern is:
 
 ```bash
 LAST30DAYS_PYTHON=python3.13 \
-  python3 skills/last30days/scripts/evaluate_search_quality.py \
+  python3 tools/dev/evaluate_search_quality.py \
   --baseline main --candidate HEAD
 ```
 
@@ -73,7 +73,7 @@ The blocker is the live-API + non-determinism combination. If a future iteration
 
 ## Links
 
-- `skills/last30days/scripts/evaluate_search_quality.py` — the evaluator script
+- `tools/dev/evaluate_search_quality.py` — the evaluator script
 - `docs/search-quality-eval.md` — user-facing usage documentation
 - `.github/workflows/validate.yml` — the default CI workflow (deterministic gates only)
 

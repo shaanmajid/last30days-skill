@@ -6,7 +6,7 @@ set -euo pipefail
 # using `claude --print` to capture real end-to-end output.
 
 SKILL_DIR="$HOME/.claude/skills/last30days"
-REPO_DIR="${REPO_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+REPO_DIR="${REPO_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 CLAUDE="${CLAUDE:-$(command -v claude || echo claude)}"
 
 # Safety: always restore V2 SKILL.md on exit/crash
@@ -192,15 +192,15 @@ For each query, check these v2 improvements:
 
 ## Scoring Guide
 
-Use the full scoring rubric from:
-`docs/plans/2026-02-06-test-v1-vs-v2-comparison-plan.md`
+Use the checklist above plus the current review goals for the release being
+compared. Historical comparison plans are no longer tracked in this repo.
 
 ## Next Step
 
 Have Claude read all 34 output files and generate scored comparison:
 ```
 Read all files in docs/test-results/v1-vs-v2-*/v1/ and v2/
-Score each on the 7 dimensions from the test plan
+Score each on the current review dimensions for this release
 Write the final analysis to docs/test-results/v1-vs-v2-*/analysis.md
 ```
 EOF

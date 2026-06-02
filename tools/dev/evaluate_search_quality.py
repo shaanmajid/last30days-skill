@@ -16,15 +16,16 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-sys.path.insert(0, str(Path(__file__).parent))
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SKILL_ROOT = REPO_ROOT / "skills" / "last30days"
+
+sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 from lib import env as envlib
 from lib import schema
 from lib.providers import GEMINI_FLASH_LITE
 
 
-SKILL_ROOT = Path(__file__).resolve().parents[1]
-REPO_ROOT = Path(__file__).resolve().parents[3]
 EVAL_TOPICS_FILE = REPO_ROOT / "fixtures" / "eval_topics.json"
 
 

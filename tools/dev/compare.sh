@@ -1,6 +1,6 @@
 #!/bin/bash
 # A/B test runner: public release vs private beta
-# Usage: bash skills/last30days/scripts/compare.sh "Kanye West"
+# Usage: bash tools/dev/compare.sh "Kanye West"
 #
 # Runs /last30days (public release) and /last30days-beta (private beta)
 # sequentially with a 30s gap, saves raw results with distinct suffixes,
@@ -9,8 +9,8 @@
 set -e
 
 if [ $# -eq 0 ]; then
-  echo "Usage: bash skills/last30days/scripts/compare.sh <topic>"
-  echo "  Example: bash skills/last30days/scripts/compare.sh Kevin Rose"
+  echo "Usage: bash tools/dev/compare.sh <topic>"
+  echo "  Example: bash tools/dev/compare.sh Kevin Rose"
   exit 1
 fi
 TOPIC="$*"
@@ -57,5 +57,5 @@ echo "  $BETA_FILE"
 echo ""
 echo "Beta output should start with a line like:"
 echo "  🧪 last30days-beta · branch <name> · synced $DATE"
-echo "If that line is missing, the beta badge regressed. See docs/plans/2026-04-17-005-*-plan.md."
+echo "If that line is missing, the beta badge regressed. See AGENTS.md for beta-channel notes."
 echo ""

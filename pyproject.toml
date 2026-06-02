@@ -22,7 +22,7 @@ addopts = [
 
 [tool.coverage.run]
 branch = true
-source = ["skills/last30days/scripts", "tests"]
+source = ["skills/last30days/scripts", "tools/dev", "tests"]
 omit = [
   "skills/last30days/scripts/lib/vendor/*",
   "dist/*",

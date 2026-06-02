@@ -3,13 +3,9 @@ assets/
 docs/
 fixtures/
 tests/
-plans/
+tools/
 agents/
 variants/
-release-notes.md
-SPEC.md
-TASKS.md
-SKILL-original.md
 *.jsonl
 *.mp3
 *.jpeg

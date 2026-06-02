@@ -245,7 +245,7 @@ git clone https://github.com/mvanhorn/last30days-skill.git
 ln -s "$(pwd)/last30days-skill/skills/last30days" ~/.claude/skills/last30days
 ```
 
-The symlink keeps the install in sync with your working tree as you edit — no re-copy needed. For `claude.ai`, build the `.skill` file from source: `bash skills/last30days/scripts/build-skill.sh` produces `dist/last30days.skill`.
+The symlink keeps the install in sync with your working tree as you edit — no re-copy needed. For `claude.ai`, build the `.skill` file from source: `bash tools/release/build-skill.sh` produces `dist/last30days.skill`.
 
 Reddit (with comments), Hacker News, Polymarket, and GitHub work immediately. Zero configuration. Run `/last30days` once and the setup wizard unlocks more sources in 30 seconds.
 

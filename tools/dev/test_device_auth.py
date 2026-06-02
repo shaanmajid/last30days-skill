@@ -2,7 +2,7 @@
 """Test ScrapeCreators GitHub device auth flow from the CLI.
 
 Usage:
-    python3 scripts/test_device_auth.py
+    python3 tools/dev/test_device_auth.py
 
 Flow:
     1. Starts device code request
