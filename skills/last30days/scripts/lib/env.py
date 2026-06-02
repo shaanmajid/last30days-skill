@@ -372,7 +372,7 @@ def get_config() -> dict[str, Any]:
     else:
         config['_CONFIG_SOURCE'] = 'env_only'
 
-    # Extract browser credentials if configured
+    # Extract browser credentials only after explicit opt-in via FROM_BROWSER.
     browser_creds = extract_browser_credentials(config)
     for key, value in browser_creds.items():
         if not config.get(key):
@@ -403,16 +403,12 @@ COOKIE_DOMAINS: dict[str, dict[str, Any]] = {
 def extract_browser_credentials(config: dict[str, Any]) -> dict[str, str]:
     """Extract auth cookies from local browsers.
 
-    Default behavior (FROM_BROWSER unset): tries Firefox and Safari only.
-    These read local files silently with no system dialogs.  Chrome is
-    skipped because ``security find-generic-password`` triggers a macOS
-    Keychain prompt that cannot be reliably suppressed.
-
-    Set ``FROM_BROWSER=auto`` to also try Chrome (accepts the dialog),
-    or ``FROM_BROWSER=off`` to disable extraction entirely.
+    Browser cookie reads are explicit opt-in. Set ``FROM_BROWSER=auto`` to try
+    Firefox, Safari, and Chrome, or set a single browser name to restrict reads
+    to that browser. Unset, empty, or ``FROM_BROWSER=off`` disables extraction.
     """
     from_browser = (config.get("FROM_BROWSER") or "").strip().lower()
-    if from_browser == "off":
+    if not from_browser or from_browser == "off":
         return {}
     try:
         from . import cookie_extract
@@ -424,8 +420,7 @@ def extract_browser_credentials(config: dict[str, Any]) -> dict[str, str]:
     elif from_browser == "auto":
         browsers = ["firefox", "safari", "chrome"]
     else:
-        # Default: silent browsers only (no Keychain dialog)
-        browsers = ["firefox", "safari"]
+        return {}
     extracted: dict[str, str] = {}
     for _service, spec in COOKIE_DOMAINS.items():
         if all(config.get(env_key) for env_key in spec["mapping"].values()):
