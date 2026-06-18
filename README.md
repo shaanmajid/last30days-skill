@@ -27,6 +27,7 @@ npx skills add mvanhorn/last30days-skill -g
 (`-g` installs globally for your user, available across all projects. Drop it to scope per-project.)
 
 More install options (claude.ai web, OpenClaw, manual) in the [Install](#install) section below.
+Maintainers: see [Distribution Topology](docs/distribution-topology.md) for the source-of-truth map and release checklist.
 
 Zero config. Reddit, HN, Polymarket, and GitHub work immediately. Run it once and the setup wizard unlocks X, YouTube, TikTok, and more in 30 seconds.
 
