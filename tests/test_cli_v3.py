@@ -1,5 +1,6 @@
 import json
 import io
+import os
 import shutil
 import tempfile
 import subprocess
@@ -123,6 +124,45 @@ class CliV3Tests(unittest.TestCase):
                 None, {"LAST30DAYS_DEFAULT_SEARCH": "notasource"},
             )
         self.assertIn("LAST30DAYS_DEFAULT_SEARCH", str(exc.exception))
+
+    def test_resolve_run_options_collects_cli_runtime_inputs(self):
+        with mock.patch.object(
+            cli.env,
+            "get_config",
+            return_value={"LAST30DAYS_DEFAULT_SEARCH": "web, reddit"},
+        ):
+            options = cli.resolve_run_options(["biosecurity", "ai", "--device-auth"])
+        self.assertIsInstance(options, cli.RunOptions)
+        self.assertEqual("biosecurity ai", options.topic)
+        self.assertEqual(["--device-auth"], options.extra_argv)
+        self.assertEqual(["grounding", "reddit"], options.requested_sources)
+        self.assertEqual(["biosecurity", "ai"], options.args.topic)
+
+    def test_resolve_run_options_setup_skips_source_validation(self):
+        with mock.patch.object(
+            cli.env,
+            "get_config",
+            return_value={"LAST30DAYS_DEFAULT_SEARCH": "notasource"},
+        ):
+            options = cli.resolve_run_options(["setup", "--github"])
+
+        self.assertEqual("setup", options.topic)
+        self.assertEqual(["--github"], options.extra_argv)
+        self.assertIsNone(options.requested_sources)
+
+    def test_resolve_run_options_applies_env_fallbacks_without_runtime_work(self):
+        with mock.patch.dict(
+            os.environ,
+            {"LAST30DAYS_MEMORY_DIR": "/tmp/l30d-memory"},
+            clear=True,
+        ), mock.patch.object(
+            cli.env,
+            "get_config",
+            return_value={"LAST30DAYS_YOUTUBE_SSH_HOST": "video-hop"},
+        ):
+            options = cli.resolve_run_options(["topic"])
+            self.assertEqual("/tmp/l30d-memory", options.args.save_dir)
+            self.assertEqual("video-hop", os.environ["LAST30DAYS_YOUTUBE_SSH_HOST"])
 
     def test_build_parser_accepts_days_alias_and_preserves_topic_tokens(self):
         parser = cli.build_parser()

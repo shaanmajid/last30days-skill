@@ -13,6 +13,7 @@ import re
 import signal
 import sys
 import threading
+from dataclasses import dataclass
 from pathlib import Path
 
 MIN_PYTHON = (3, 12)
@@ -367,6 +368,59 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+@dataclass(frozen=True)
+class RunOptions:
+    args: argparse.Namespace
+    extra_argv: list[str]
+    topic: str
+    config: dict
+    requested_sources: list[str] | None
+
+
+def resolve_run_options(
+    argv: list[str] | None = None,
+    *,
+    parser: argparse.ArgumentParser | None = None,
+) -> RunOptions:
+    parser = parser or build_parser()
+    # Use parse_known_args so setup sub-flags (--device-auth, --github,
+    # --openclaw) pass through without argparse hard-exiting.
+    args, extra_argv = parser.parse_known_args(argv)
+    if args.debug:
+        os.environ["LAST30DAYS_DEBUG"] = "1"
+
+    config = env.get_config()
+
+    # Env-var fallback for --save-dir, mirroring the LAST30DAYS_STORE pattern below.
+    # Uses `is None` / `is not None` checks (not truthy `or`) at every layer so that
+    # `--save-dir ""`, `LAST30DAYS_MEMORY_DIR=""` (shell-export-empty), and explicit
+    # absence each correctly suppress save. An `or` chain would collapse the empty
+    # shell-export into the same path as unset, silently falling through to .env.
+    if args.save_dir is None:
+        env_val = os.environ.get("LAST30DAYS_MEMORY_DIR")
+        args.save_dir = env_val if env_val is not None else config.get("LAST30DAYS_MEMORY_DIR")
+
+    # Surface SSH-routing config as an env var so library modules (e.g.
+    # youtube_yt) can read it without taking a config dependency. This
+    # routes yt-dlp through `ssh <host>` to bypass YouTube's bot-wall on
+    # datacenter IPs (see lib/youtube_yt.py for details).
+    if config.get("LAST30DAYS_YOUTUBE_SSH_HOST") and "LAST30DAYS_YOUTUBE_SSH_HOST" not in os.environ:
+        os.environ["LAST30DAYS_YOUTUBE_SSH_HOST"] = config["LAST30DAYS_YOUTUBE_SSH_HOST"]
+
+    topic = " ".join(args.topic).strip()
+    requested_sources = None
+    if topic.lower() != "setup":
+        requested_sources = resolve_requested_sources(args.search, config)
+
+    return RunOptions(
+        args=args,
+        extra_argv=extra_argv,
+        topic=topic,
+        config=config,
+        requested_sources=requested_sources,
+    )
+
+
 def parse_competitors_plan(raw: str | None) -> dict[str, dict]:
     """Parse a --competitors-plan argument into a {entity_name_lower: plan_entry} dict.
 
@@ -636,32 +690,13 @@ _propagate_config_to_environ()
 
 def main() -> int:
     parser = build_parser()
-    # Use parse_known_args so setup sub-flags (--device-auth, --github,
-    # --openclaw) pass through without argparse hard-exiting.
-    args, extra_argv = parser.parse_known_args()
-    if args.debug:
-        os.environ["LAST30DAYS_DEBUG"] = "1"
-
-    config = env.get_config()
-
-    # Env-var fallback for --save-dir, mirroring the LAST30DAYS_STORE pattern below.
-    # Uses `is None` / `is not None` checks (not truthy `or`) at every layer so that
-    # `--save-dir ""`, `LAST30DAYS_MEMORY_DIR=""` (shell-export-empty), and explicit
-    # absence each correctly suppress save. An `or` chain would collapse the empty
-    # shell-export into the same path as unset, silently falling through to .env.
-    if args.save_dir is None:
-        env_val = os.environ.get("LAST30DAYS_MEMORY_DIR")
-        args.save_dir = env_val if env_val is not None else config.get("LAST30DAYS_MEMORY_DIR")
-
-    # Surface SSH-routing config as an env var so library modules (e.g.
-    # youtube_yt) can read it without taking a config dependency. This
-    # routes yt-dlp through `ssh <host>` to bypass YouTube's bot-wall on
-    # datacenter IPs (see lib/youtube_yt.py for details).
-    if config.get("LAST30DAYS_YOUTUBE_SSH_HOST") and "LAST30DAYS_YOUTUBE_SSH_HOST" not in os.environ:
-        os.environ["LAST30DAYS_YOUTUBE_SSH_HOST"] = config["LAST30DAYS_YOUTUBE_SSH_HOST"]
+    options = resolve_run_options(parser=parser)
+    args = options.args
+    extra_argv = options.extra_argv
+    config = options.config
 
     # Handle setup subcommand
-    topic = " ".join(args.topic).strip()
+    topic = options.topic
     if topic.lower() == "setup":
         from lib import setup_wizard
         if "--openclaw" in extra_argv:
@@ -692,7 +727,7 @@ def main() -> int:
         sys.stderr.write(setup_wizard.get_setup_status_text(results) + "\n")
         return 0
 
-    requested_sources = resolve_requested_sources(args.search, config)
+    requested_sources = options.requested_sources
     diag = pipeline.diagnose(config, requested_sources)
 
     if args.diagnose:
