@@ -8,7 +8,7 @@ Flow:
     1. Starts device code request
     2. Shows user code + opens GitHub auth URL in browser
     3. Polls for token until you complete auth
-    4. Fetches your profile and prints your API key
+    4. Fetches your profile and confirms whether an API key is available
 """
 
 import json
@@ -19,6 +19,26 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 
 BASE = "https://api.scrapecreators.com/v1/github/device"
+SECRET_FIELDS = {"access_token", "api_key", "token", "refresh_token"}
+
+
+def _mask_secret(value, *, visible=4):
+    if not isinstance(value, str) or not value:
+        return "<redacted>"
+    if len(value) <= visible:
+        return "<redacted>"
+    return f"{value[:visible]}...<redacted>"
+
+
+def _redact_secrets(value):
+    if isinstance(value, dict):
+        return {
+            key: _mask_secret(item) if key.lower() in SECRET_FIELDS else _redact_secrets(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_redact_secrets(item) for item in value]
+    return value
 
 
 def _post(url, data=None):
@@ -101,7 +121,7 @@ def main():
         print("\n\nTimed out waiting for authorization.")
         sys.exit(1)
 
-    print(f"\n\nAuthorized! Access token: {access_token[:12]}...\n")
+    print(f"\n\nAuthorized! Access token: {_mask_secret(access_token)}\n")
 
     # Step 3: Fetch profile
     print("Fetching profile...")
@@ -109,19 +129,20 @@ def main():
         profile = _get(f"{BASE}/profile", access_token)
     except (HTTPError, URLError) as e:
         print(f"Failed to fetch profile: {e}")
-        print(f"(access_token was: {access_token})")
+        print(f"(access_token was: {_mask_secret(access_token)})")
         sys.exit(1)
 
-    print(f"\nProfile response:\n{json.dumps(profile, indent=2)}\n")
+    redacted_profile = _redact_secrets(profile)
+    print(f"\nProfile response:\n{json.dumps(redacted_profile, indent=2)}\n")
 
     api_key = profile.get("api_key")
     if api_key:
         print("=" * 50)
-        print(f"Your ScrapeCreators API key: {api_key}")
+        print(f"ScrapeCreators API key received: {_mask_secret(api_key)}")
         print("=" * 50)
-        print(f"\nTo use it: echo 'SCRAPECREATORS_API_KEY={api_key}' >> ~/.config/last30days/.env")
+        print("\nStore it as SCRAPECREATORS_API_KEY in ~/.config/last30days/.env.")
     else:
-        print("No api_key in profile response. Full response printed above.")
+        print("No api_key in profile response. Redacted response printed above.")
 
 
 if __name__ == "__main__":

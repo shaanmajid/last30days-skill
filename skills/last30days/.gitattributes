@@ -1,0 +1,14 @@
+# Exclude non-runtime helpers from the claude.ai-upload-ready .skill artifact.
+# build-skill.sh archives HEAD:skills/last30days, so these patterns are
+# intentionally relative to this skill directory.
+assets/                              export-ignore
+assets/**                            export-ignore
+agents/                              export-ignore
+agents/**                            export-ignore
+scripts/build-skill.sh               export-ignore
+scripts/compare.sh                   export-ignore
+scripts/evaluate_search_quality.py   export-ignore
+scripts/test-v1-vs-v2.sh             export-ignore
+scripts/test_device_auth.py          export-ignore
+scripts/verify_v3.py                 export-ignore
+.gitattributes                       export-ignore

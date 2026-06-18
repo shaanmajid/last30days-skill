@@ -17,6 +17,20 @@ docs/          export-ignore
 fixtures/      export-ignore
 assets/        export-ignore
 
+# Skill artifact hygiene. These explicit paths protect full-repository
+# archives; skills/last30days/.gitattributes protects the subtree archive used
+# by skills/last30days/scripts/build-skill.sh.
+skills/last30days/assets/                              export-ignore
+skills/last30days/assets/**                            export-ignore
+skills/last30days/agents/                              export-ignore
+skills/last30days/agents/**                            export-ignore
+skills/last30days/scripts/build-skill.sh               export-ignore
+skills/last30days/scripts/compare.sh                   export-ignore
+skills/last30days/scripts/evaluate_search_quality.py   export-ignore
+skills/last30days/scripts/test-v1-vs-v2.sh             export-ignore
+skills/last30days/scripts/test_device_auth.py          export-ignore
+skills/last30days/scripts/verify_v3.py                 export-ignore
+
 # NOTE: skills/ and .claude-plugin/ are NOT export-ignored here because
 # Claude Code's /plugin install fetches this same git archive tarball.
 # Removing those from the archive (as v3.0.1 did) silently breaks installs.
