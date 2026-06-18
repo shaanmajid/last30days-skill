@@ -74,6 +74,10 @@ def _cleanup_children() -> None:
 atexit.register(_cleanup_children)
 
 
+def default_memory_dir() -> str:
+    return str(Path.home() / "Documents" / "Last30Days")
+
+
 def parse_search_flag(raw: str, flag_name: str = "--search") -> list[str]:
     sources = []
     for source in raw.split(","):
@@ -288,6 +292,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--debug", action="store_true", help="Enable HTTP debug logging")
     parser.add_argument("--mock", action="store_true", help="Use mock retrieval fixtures")
     parser.add_argument("--diagnose", action="store_true", help="Print provider and source availability")
+    parser.add_argument("--save", action="store_true", help="Save output using LAST30DAYS_MEMORY_DIR or the default memory directory")
     parser.add_argument("--save-dir", help="Optional directory for saving the rendered output")
     parser.add_argument("--output", help="Optional exact file path for saving the rendered output")
     parser.add_argument("--synthesis-file", help="Markdown synthesis to embed in --emit=html output")
@@ -652,6 +657,8 @@ def main() -> int:
     if args.save_dir is None:
         env_val = os.environ.get("LAST30DAYS_MEMORY_DIR")
         args.save_dir = env_val if env_val is not None else config.get("LAST30DAYS_MEMORY_DIR")
+        if args.save and args.save_dir is None:
+            args.save_dir = default_memory_dir()
 
     # Surface SSH-routing config as an env var so library modules (e.g.
     # youtube_yt) can read it without taking a config dependency. This

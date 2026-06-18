@@ -36,7 +36,7 @@ func Register(s *server.MCPServer, cfg Config) {
 			mcplib.WithString("topic", mcplib.Required(), mcplib.Description("The subject to research (a person, company, product, event, or general topic).")),
 			mcplib.WithString("emit", mcplib.Description("Output shape: 'compact' (default) for inline synthesis or 'html' to save a shareable brief alongside the response.")),
 			mcplib.WithBoolean("save", mcplib.Description("Persist the synthesis as a markdown report under ~/Documents/Last30Days/ (or LAST30DAYS_MEMORY_DIR if set).")),
-			mcplib.WithReadOnlyHintAnnotation(true),
+			mcplib.WithReadOnlyHintAnnotation(false),
 			mcplib.WithDestructiveHintAnnotation(false),
 			mcplib.WithOpenWorldHintAnnotation(true),
 		),
@@ -74,9 +74,9 @@ func makeResearchHandler(cfg Config) server.ToolHandlerFunc {
 			)), nil
 		}
 
-		runArgs := []string{topic, "--emit=" + emit}
-		if save {
-			runArgs = append(runArgs, "--save")
+		runArgs, err := researchRunArgs(topic, emit, save)
+		if err != nil {
+			return mcplib.NewToolResultError(err.Error()), nil
 		}
 
 		res, runErr := engine.Run(ctx, engine.RunOptions{
@@ -88,6 +88,14 @@ func makeResearchHandler(cfg Config) server.ToolHandlerFunc {
 		}
 		return mcplib.NewToolResultText(string(res.Stdout)), nil
 	}
+}
+
+func researchRunArgs(topic string, emit string, save bool) ([]string, error) {
+	args := []string{topic, "--emit=" + emit}
+	if save {
+		args = append(args, "--save")
+	}
+	return args, nil
 }
 
 func requireString(args map[string]any, name string) (string, error) {

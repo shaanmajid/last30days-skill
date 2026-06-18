@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -94,6 +95,28 @@ func TestBoolArgument(t *testing.T) {
 	}
 	if _, err := boolArgument(map[string]any{"save": "true"}, "save"); err == nil {
 		t.Fatal("expected error for string value")
+	}
+}
+
+func TestResearchRunArgsSaveFalseOmitsSaveDir(t *testing.T) {
+	got, err := researchRunArgs("OpenAI", "compact", false)
+	if err != nil {
+		t.Fatalf("researchRunArgs: %v", err)
+	}
+	want := []string{"OpenAI", "--emit=compact"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("args = %#v, want %#v", got, want)
+	}
+}
+
+func TestResearchRunArgsSaveTruePassesSaveFlag(t *testing.T) {
+	got, err := researchRunArgs("OpenAI", "html", true)
+	if err != nil {
+		t.Fatalf("researchRunArgs: %v", err)
+	}
+	want := []string{"OpenAI", "--emit=html", "--save"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("args = %#v, want %#v", got, want)
 	}
 }
 

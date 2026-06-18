@@ -139,6 +139,40 @@ class SaveDirEnvFallbackTests(unittest.TestCase):
         files = sorted(self.save_target.glob("*.md"))
         self.assertEqual(len(files), 0)
 
+    def test_save_flag_uses_dotenv_memory_dir(self) -> None:
+        """--save asks the engine to save while still honoring configured memory dir."""
+        self._write_dotenv(f"LAST30DAYS_MEMORY_DIR={self.save_target}\n")
+        result = _run_engine(
+            topic="OpenAI",
+            extra_argv=["--save"],
+            env_overrides={"LAST30DAYS_CONFIG_DIR": str(self.config_dir)},
+        )
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        files = sorted(self.save_target.glob("*.md"))
+        self.assertGreaterEqual(
+            len(files), 1,
+            msg=f"--save did not use configured memory dir. stderr: {result.stderr}",
+        )
+
+    def test_save_flag_defaults_to_documents_dir(self) -> None:
+        """--save has an explicit fallback for callers that request persistence."""
+        home = self.tmp / "home"
+        default_target = home / "Documents" / "Last30Days"
+        result = _run_engine(
+            topic="OpenAI",
+            extra_argv=["--save"],
+            env_overrides={
+                "LAST30DAYS_CONFIG_DIR": "",
+                "HOME": str(home),
+            },
+        )
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        files = sorted(default_target.glob("*.md"))
+        self.assertGreaterEqual(
+            len(files), 1,
+            msg=f"--save did not create default save output. stderr: {result.stderr}",
+        )
+
     def test_empty_string_env_var_does_not_trigger_save(self) -> None:
         """LAST30DAYS_MEMORY_DIR='' is treated as 'no fallback', not as a path."""
         result = _run_engine(

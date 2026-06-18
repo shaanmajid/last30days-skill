@@ -33,4 +33,4 @@ End users need Python 3.12+ on PATH. The bundle ships the engine source but reli
 
 ## Versioning
 
-The MCPB `manifest.json` version is hand-bumped in the same PR that ships engine changes worth releasing. Release CI stamps the Go binary's `main.Version` from the tag.
+The MCPB `manifest.json` version is bumped with `skills/last30days/SKILL.md`; version consistency tests guard the two artifacts against drift. Release CI stamps the Go binary's `main.Version` from the tag.
