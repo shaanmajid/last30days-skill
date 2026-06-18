@@ -21,7 +21,6 @@ from . import (
     env,
     github,
     grounding,
-    hackernews,
     hiring_signals,
     instagram,
     jobs,
@@ -39,6 +38,7 @@ from . import (
     schema,
     signals,
     snippet,
+    source_adapters,
     threads,
     tiktok,
     truthsocial,
@@ -119,10 +119,9 @@ def available_sources(config: dict[str, Any], requested_sources: list[str] | Non
         available.append("x")
     if which("yt-dlp") or env.is_youtube_sc_available(config):
         available.append("youtube")
-    available.extend(["hackernews", "polymarket"])
-    # GitHub is reachable via the unauthenticated REST tier too, so it is
-    # available even without a token/gh CLI (a token only raises rate limits).
-    available.append("github")
+    # These simple adapters do not require local tooling or credentials. GitHub
+    # can use the unauthenticated REST tier; a token only raises rate limits.
+    available.extend(source_adapters.SOURCE_REGISTRY.always_available_names())
     if which("digg-pp-cli"):
         available.append("digg")
     if env.is_bluesky_available(config):
@@ -1195,9 +1194,14 @@ def _retrieve_stream(
             ig_creators=ig_creators,
         )
         return instagram.parse_instagram_response(result), {}
-    if source == "hackernews":
-        result = hackernews.search_hackernews(subquery.search_query, from_date, to_date, depth=depth)
-        return hackernews.parse_hackernews_response(result, query=subquery.search_query), {}
+    adapter = source_adapters.SOURCE_REGISTRY.get(source)
+    if adapter is not None:
+        return adapter.fetch(source_adapters.SourceRequest(
+            subquery=subquery,
+            date_range=date_range,
+            config=config,
+            depth=depth,
+        ))
     if source == "digg":
         result = digg.search_digg(subquery.search_query, from_date, to_date, depth=depth)
         items = digg.parse_digg_response(result, query=subquery.search_query)
@@ -1218,22 +1222,6 @@ def _retrieve_stream(
     if source == "truthsocial":
         result = truthsocial.search_truthsocial(subquery.search_query, from_date, to_date, depth=depth, config=config)
         return truthsocial.parse_truthsocial_response(result), {}
-    if source == "polymarket":
-        result = polymarket.search_polymarket(subquery.search_query, from_date, to_date, depth=depth)
-        return polymarket.parse_polymarket_response(result, topic=subquery.search_query), {}
-    if source == "github":
-        # Resolve once at the pipeline boundary so search and enrich
-        # share the result; otherwise each call would re-run the env
-        # lookup and gh-CLI subprocess fallback (up to 5s timeout each).
-        token = github.resolve_token(config.get("GITHUB_TOKEN"))
-        response = github.search_github(subquery.search_query, from_date, to_date, depth=depth, token=token)
-        items = github.parse_github_response(response)
-        # Note: an unauth rate-limit (response["error"]) is expected on the
-        # tokenless anon tier and returns empty here rather than raising — github
-        # is now always eligible, so raising would spam "github failed" on every
-        # tokenless run. The condition is logged in github.search_github.
-        items = github.enrich_with_comments(items, depth=depth, token=token)
-        return items, {}
     if source == "pinterest":
         result = pinterest.search_pinterest(
             subquery.search_query, from_date, to_date,
