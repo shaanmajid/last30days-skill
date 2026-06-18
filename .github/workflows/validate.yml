@@ -27,3 +27,59 @@ jobs:
 
       - name: Run test suite
         run: uv run pytest
+
+  mcp:
+    name: Go MCP
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      GOTOOLCHAIN: local
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: mcp/go.mod
+          cache-dependency-path: mcp/go.sum
+
+      - name: Show Go version
+        run: go version
+
+      - name: Sync embedded engine
+        run: bash scripts/sync-engine.sh
+
+      - name: Check embedded engine payload
+        run: |
+          test -s internal/engine/vendored/last30days.py
+          test -f internal/engine/vendored/lib/__init__.py
+          test -f internal/engine/vendored/lib/schema.py
+          if find internal/engine/vendored -type d -name "__pycache__" -print -quit | grep -q .; then
+            echo "embedded engine payload contains __pycache__ directories"
+            exit 1
+          fi
+          if find internal/engine/vendored -type f -name "*.pyc" -print -quit | grep -q .; then
+            echo "embedded engine payload contains .pyc files"
+            exit 1
+          fi
+
+      - name: Check gofmt
+        run: |
+          files="$(gofmt -l .)"
+          if [ -n "${files}" ]; then
+            echo "${files}"
+            exit 1
+          fi
+
+      - name: Run Go tests
+        run: go test ./...
+
+      - name: Run go vet
+        run: go vet ./...
